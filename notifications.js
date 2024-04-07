@@ -24,6 +24,8 @@ function openAuditLogDb() {
   });
   return db;
 }
+
+
 function doctorNotification(data) {
     // logic to send notification to the doctor
     console.log(`Doctor notified about cancellation: ${data.confirmationCode}`);
@@ -37,11 +39,25 @@ function doctorNotification(data) {
   }
   
   function auditLogger(data) {
-    // logic to log the cancellation for audit purposes
-    console.log(`Audit log entry for cancellation: ${data.confirmationCode}`);
-    // Replace console.log with actual logging code
-  }
-  
+  const db = openAuditLogDb();
+
+  db.serialize(() => {
+    const insertLogEntry = db.prepare(`INSERT INTO audit_log (confirmationCode, event) VALUES (?, ?)`);
+    insertLogEntry.run(data.confirmationCode, 'Cancellation', (err) => {
+      if (err) {
+        console.error('Error writing to audit log database', err.message);
+      }
+      insertLogEntry.finalize(); // Always finalize statements to prevent memory leaks
+    });
+  });
+
+  db.close((err) => {
+    if (err) {
+      console.error('Error closing audit log database', err.message);
+    }
+  });
+}
+
   module.exports = {
     doctorNotification,
     secretaryNotification,
