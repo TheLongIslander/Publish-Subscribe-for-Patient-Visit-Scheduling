@@ -1,6 +1,6 @@
 const Holidays = require('date-holidays');
 const hd = new Holidays('US');
-
+const moment = require('moment-timezone');
 const isWeekend = (date) => 
 {
     const day = date.getDay();
@@ -16,7 +16,19 @@ const isWeekend = (date) =>
     const timePart = timeStr.replace(/:/g, '');
     return `${datePart}T${timePart}Z`;
 };
+const convertToICalendarFormatFull = (isoDateTime) => {
+  // Convert the ISO date-time string to a moment object in Eastern Time
+  const easternTime = moment(isoDateTime).tz('America/New_York');
 
+  // Format it to iCalendar date-time format
+  return easternTime.format('YYYYMMDDTHHmmss');
+};
+
+
+module.exports = {
+  // ... export existing functions ...
+  convertToICalendarFormatFull
+};
 const convertFromICalendarFormat = (iCalendarDateTime) => {
     const datePart = iCalendarDateTime.slice(0, 8); // Extract YYYYMMDD part
     return `${datePart.slice(0, 4)}-${datePart.slice(4, 6)}-${datePart.slice(6, 8)}`;
@@ -39,5 +51,5 @@ const isHoliday = (date) => {
   };
 
   
-  module.exports = { isWeekend, formatDate, convertToICalendarFormat, convertFromICalendarFormat,convertTimestampForDisplay, isHoliday};
+  module.exports = { isWeekend, formatDate, convertToICalendarFormat, convertFromICalendarFormat,convertTimestampForDisplay, isHoliday, convertToICalendarFormatFull};
   
