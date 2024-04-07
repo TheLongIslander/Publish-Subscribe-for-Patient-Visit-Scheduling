@@ -1,6 +1,7 @@
 // notifications.js
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { convertToICalendarFormat } = require('./utils'); // Make sure to require your utils.js
 
 const AUDIT_DB_PATH = path.join(__dirname, 'audit_log.db');
 
@@ -39,11 +40,13 @@ function doctorNotification(data) {
   }
   
   function auditLogger(data) {
-  const db = openAuditLogDb();
-
-  db.serialize(() => {
-    const insertLogEntry = db.prepare(`INSERT INTO audit_log (confirmationCode, event) VALUES (?, ?)`);
-    insertLogEntry.run(data.confirmationCode, 'Cancellation', (err) => {
+    const db = openAuditLogDb();
+  
+    db.serialize(() => {
+        // Get the current UTC time in iCalendar format
+    const formattedTimestamp = convertToICalendarFormat(new Date().toISOString());
+    const insertLogEntry = db.prepare(`INSERT INTO audit_log (confirmationCode, timestamp, event) VALUES (?, ?, ?)`);
+    insertLogEntry.run(data.confirmationCode, formattedTimestamp, 'Cancellation', (err) => {
       if (err) {
         console.error('Error writing to audit log database', err.message);
       }
@@ -57,7 +60,7 @@ function doctorNotification(data) {
     }
   });
 }
-
+  
   module.exports = {
     doctorNotification,
     secretaryNotification,
