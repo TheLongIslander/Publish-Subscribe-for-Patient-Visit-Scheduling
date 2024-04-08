@@ -101,28 +101,31 @@ module.exports = (db, cancellationPublisher) => {
      //ADMIN - update email
      router.post('/update-emails', (req, res) => {
         const { doctorEmail, secretaryEmail } = req.body;
-      
+    
         // Simple validation
         if (!doctorEmail || !secretaryEmail) {
-          return res.status(400).json({ error: 'Please provide both doctor and secretary email addresses.' });
+            return res.status(400).json({ error: 'Please provide both doctor and secretary email addresses.' });
         }
-      
+    
+        // Regular expression to validate email format
+        const emailRegex = /\S+@\S+\.\S+/;
+    
+        // Validate email address format
+        if (!emailRegex.test(doctorEmail) || !emailRegex.test(secretaryEmail)) {
+            return res.status(400).json({ error: 'Invalid email address format.' });
+        }
+    
         // Update the emails.json file with the new email addresses
         const emailData = { doctorEmail, secretaryEmail };
         fs.writeFile(EMAILS_FILE, JSON.stringify(emailData, null, 2), (err) => {
-          if (err) {
-            console.error('Error writing to emails file', err.message);
-            return res.status(500).json({ error: 'Failed to update email addresses.' });
-          }
-      
-          res.json({ message: 'Email addresses updated successfully.' });
+            if (err) {
+                console.error('Error writing to emails file', err.message);
+                return res.status(500).json({ error: 'Failed to update email addresses.' });
+            }
+    
+            res.json({ message: 'Email addresses updated successfully.' });
         });
-      });
-    // Catch-all middleware for undefined routes
-    router.use('*', (req, res) => {
-        res.status(404).json({ error: 'This is an invalid route. Please check the URL and try again.' });
     });
-
    
     return router;
 };
