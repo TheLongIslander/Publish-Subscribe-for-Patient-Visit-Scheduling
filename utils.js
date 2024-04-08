@@ -1,6 +1,23 @@
+require('dotenv').config({ path: './cred.env' });;
 const Holidays = require('date-holidays');
 const hd = new Holidays('US');
 const moment = require('moment-timezone');
+const fs = require('fs');
+const nodemailer = require('nodemailer');
+const path = require('path');
+// Initialize nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    type: 'OAuth2',
+    user: process.env.EMAIL_USER, // Your Gmail address
+    clientId: process.env.OAUTH_CLIENTID, // Your OAuth2 Client ID
+    clientSecret: process.env.OAUTH_CLIENT_SECRET, // Your OAuth2 Client Secret
+    refreshToken: process.env.OAUTH_REFRESH_TOKEN, // The Refresh Token
+  }
+});
+
+const EMAILS_FILE = path.join(__dirname, 'emails.json');
 const isWeekend = (date) => 
 {
     const day = date.getDay();
@@ -51,5 +68,40 @@ const isHoliday = (date) => {
   };
 
   
-  module.exports = { isWeekend, formatDate, convertToICalendarFormat, convertFromICalendarFormat,convertTimestampForDisplay, isHoliday, convertToICalendarFormatFull};
+
+// Send email using nodemailer
+const sendEmailNotification = (email, subject, message) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: subject,
+    text: message,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log(`Email sent: ${info.response}`);
+    }
+  });
+};
+
+// Function to send email to a specific role by reading the role's email from emails.json
+const sendEmailToRole = (role, subject, message) => {
+  fs.readFile(EMAILS_FILE, (err, data) => {
+    if (err) {
+      console.error('Error reading from emails file', err.message);
+      return;
+    }
+
+    const emails = JSON.parse(data);
+    const email = role === 'doctor' ? emails.doctorEmail : emails.secretaryEmail;
+
+    sendEmailNotification(email, subject, message);
+  });
+};
+
+  
+  module.exports = { isWeekend, formatDate, convertToICalendarFormat, convertFromICalendarFormat,convertTimestampForDisplay, isHoliday, convertToICalendarFormatFull, sendEmailToRole};
   
