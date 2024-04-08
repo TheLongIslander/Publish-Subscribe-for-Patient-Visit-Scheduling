@@ -62,6 +62,10 @@ The server will start and listen for requests on port 3000.
 
 	npm install axios
 
+-dotenv: Loads environment variables from a .env file into process.env
+
+	npm install dotenv
+
 
 
 
