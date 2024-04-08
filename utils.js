@@ -40,12 +40,6 @@ const convertToICalendarFormatFull = (isoDateTime) => {
   // Format it to iCalendar date-time format
   return easternTime.format('YYYYMMDDTHHmmss');
 };
-
-
-module.exports = {
-  // ... export existing functions ...
-  convertToICalendarFormatFull
-};
 const convertFromICalendarFormat = (iCalendarDateTime) => {
     const datePart = iCalendarDateTime.slice(0, 8); // Extract YYYYMMDD part
     return `${datePart.slice(0, 4)}-${datePart.slice(4, 6)}-${datePart.slice(6, 8)}`;
