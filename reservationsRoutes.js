@@ -1,5 +1,9 @@
 const express = require('express');
 const reservationsHandler = require('./reservationsHandler');
+const fs = require('fs');
+const path = require('path');
+// Assuming emails.json is in the same directory as your server.js
+const EMAILS_FILE = path.join(__dirname, 'emails.json');
 
 module.exports = (db, cancellationPublisher) => {
     const router = express.Router();
@@ -94,11 +98,31 @@ module.exports = (db, cancellationPublisher) => {
             res.status(400).json({ error: error.message });
         }
     });
+     //ADMIN - update email
+     router.post('/update-emails', (req, res) => {
+        const { doctorEmail, secretaryEmail } = req.body;
+      
+        // Simple validation
+        if (!doctorEmail || !secretaryEmail) {
+          return res.status(400).json({ error: 'Please provide both doctor and secretary email addresses.' });
+        }
+      
+        // Update the emails.json file with the new email addresses
+        const emailData = { doctorEmail, secretaryEmail };
+        fs.writeFile(EMAILS_FILE, JSON.stringify(emailData, null, 2), (err) => {
+          if (err) {
+            console.error('Error writing to emails file', err.message);
+            return res.status(500).json({ error: 'Failed to update email addresses.' });
+          }
+      
+          res.json({ message: 'Email addresses updated successfully.' });
+        });
+      });
     // Catch-all middleware for undefined routes
     router.use('*', (req, res) => {
         res.status(404).json({ error: 'This is an invalid route. Please check the URL and try again.' });
     });
 
-
+   
     return router;
 };
