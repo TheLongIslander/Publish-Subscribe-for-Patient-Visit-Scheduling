@@ -1,7 +1,8 @@
 // notifications.js
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const { convertToICalendarFormatFull } = require('./utils'); // Make sure to require your utils.js
+const { convertToICalendarFormatFull, sendEmailToRole } = require('./utils'); 
+
 
 const AUDIT_DB_PATH = path.join(__dirname, 'audit_log.db');
 
@@ -30,13 +31,13 @@ function openAuditLogDb() {
 function doctorNotification(data) {
     // logic to send notification to the doctor
     console.log(`Doctor notified about cancellation: ${data.confirmationCode}`);
-    // Replace console.log with real notification code
+    sendEmailToRole('doctor', 'Cancellation Alert', `A cancellation has occurred: ${data.confirmationCode}`);
   }
   
   function secretaryNotification(data) {
     // logic to send notification to the secretary
     console.log(`Secretary notified about cancellation: ${data.confirmationCode}`);
-    // Replace console.log with real notification code
+    sendEmailToRole('secretary', 'Cancellation Alert', `A cancellation has occurred: ${data.confirmationCode}`);
   }
   
   function auditLogger(data) {
