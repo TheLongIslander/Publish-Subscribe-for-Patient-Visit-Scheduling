@@ -1,14 +1,20 @@
+**IMPORTANT**: Including the 'cred.env' file is critical for email notifications to actually work. If this is not included, then this portion of the program will not function as it contains the token for Google authentication for the burner email address.
+
+**IMPORTANT**: Remember, if you want to test email notifications, please first use the 'update-emails' API endpoint to update the email to an email you have access to. Otherwise, the emails will be sent to newdoctor@example.com and newsecretary@example.com respectively!
+
 # Reservation System API
 
 ## Overview
-This Reservation System API is designed to handle reservation requests, including finding available dates, making, looking up, and cancelling reservations. The API leverages Express.js for server handling, SQLite3 for database interactions, and includes custom utility functions for date handling and validation.
+This Reservation System API is designed to handle reservation requests, including finding available dates, making, looking up, and cancelling reservations. The API leverages Express.js for server handling, SQLite3 for database interactions, and includes custom utility functions for date handling and validation. It now also supports email notifications and audit logging of cancellations.
 
 ## Files and Their Roles
-1. **server.js**: Initializes the Express application, sets up middleware, connects to the SQLite database, and listens for requests on a specified port.
-2. **reservationsRoutes.js**: Defines API endpoints for various reservation actions (e.g., finding available dates, making a reservation) and routes them appropriately.
+1. **server.js**: itializes the Express application, sets up middleware, connects to the SQLite database, listens for requests on a specified port, and handles OAuth2 authentication for email notifications.
+2. **reservationsRoutes.js**: Defines API endpoints for various reservation actions and routes them appropriately. Includes new endpoint for updating notification email addresses.
 3. **reservationsHandler.js**: Contains functions that interact directly with the SQLite database to perform actions like checking date availability, creating, and cancelling reservations.
-4. **utils.js**: Provides utility functions for date manipulation, holiday checking, and format conversion to support the reservation process.
+4. **utils.js**: Provides utility functions for date manipulation, holiday checking, format conversion, and email notifications support.
 5.  **schedulerSpec.js**: Provides Jasmine Supertest cases to run test cases on the server. This file is located in the "spec" directory within the main project directory.
+6. **publisher.js**: Implements a publisher-subscriber pattern to manage notifications for different events.
+7. **notification.js**: Manages the sending of email notifications and audit log entries for reservation cancellations.
 
 ## Setup Instructions
 1. Ensure Node.js and npm are installed on your system.
@@ -17,6 +23,8 @@ This Reservation System API is designed to handle reservation requests, includin
 	node server.js 
 
 The server will start and listen for requests on port 3000.
+
+**IMPORTANT**: To use email notification features, make sure to update your email using the POST /api/update-emails endpoint!
 
 ## Dependencies
 - express: Web server framework
@@ -42,6 +50,22 @@ The server will start and listen for requests on port 3000.
 
 	npm install supertest
 
+- moment-timzone: Allows for easy timezone Management
+
+	npm install moment-timezone
+
+- nodemailer: This allows more emailing within JavaScript
+
+	npm install nodemailer
+
+-axios: For google OAuth2 related functions
+
+	npm install axios
+
+
+
+
+
 
 ## Usage
 Using Postman, you can interact with the server in the following ways:
@@ -51,6 +75,7 @@ Using Postman, you can interact with the server in the following ways:
 - `POST /api/reserve`: Make a new reservation.
 - `GET /api/reservations/:email`: Look up reservations by email.
 - `POST /api/cancel-reservation`: Cancel an existing reservation.
+- `POST /api/update-emails`: Update the email addresses used for notifications.
 
 
 
@@ -61,6 +86,12 @@ Using Postman, you can interact with the server in the following ways:
 - **Reservation Management**: Supports operations to make, look up, and cancel reservations efficiently with simple API calls.
 
 - **Error Handling**: Implements error handling to respond with appropriate error messages for various invalid requests.
+
+- **Email Notifications**: Sends automated notifications for cancellations to designated emails (doctor, secretary).
+
+-**Audit Logging**: Maintains an audit log of reservation cancellations in a separate database.
+
+-**Dynamic Email Configuration**: Allows updating notification email addresses via an API endpoint.
 
 ### Finding Available Dates
 - Endpoint: `GET /api/available-dates?startDate=YYYY-MM-DD&N=number`
@@ -119,6 +150,23 @@ Using Postman, you can interact with the server in the following ways:
 
 - Description: Cancels the reservation associated with the given confirmation code.
 
+
+##Updating Notification Emails
+
+Endpoint: `POST /api/update-emails`
+
+- Body (uses Content-Type "application/json")
+
+	Example of Body:
+	{
+ 		 "doctorEmail": "example@example.com",
+  		"secretaryEmail": "example@example.com"
+	}
+
+- Description: Updates what doctors and secretary's emails are for notifications.
+
+
+	
 ##Optional
 
 This package includes an optional and simple JSON to SQLite3 converter in case one would want to import data from a JSON file into an SQLite3 database. This is optional because by default, a test SQLite3 database is included with this package.
